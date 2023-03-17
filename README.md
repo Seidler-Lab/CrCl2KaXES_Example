@@ -1,4 +1,4 @@
-# CrCl$_2$ K$\alpha$ XES Example
+# CrCl2 Kalpha XES Example
 
 These scripts are built for a linux environment and require quanty and FPLO binaries to be added to path. Please see the slides and files from the 13:30 - 15:00 Wednesday session of the 2019 Heidelberg workshop programme for more information about the DFT + MLFT codes.
 
