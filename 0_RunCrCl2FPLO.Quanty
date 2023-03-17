@@ -1,0 +1,140 @@
+-- This script runs FPLO to create an LDA calculation of CrCl2
+
+-- The name of the program and version
+FPLO  = "fplo14.00-49-x86_64"
+FEdit = "fedit14.00-49-x86_64"
+
+directoryname = "DFT"
+
+-- create the directory where the calculation should be stored
+os.execute("if [ ! -d \""..directoryname.."\" ]; then mkdir "..directoryname.."; fi")
+
+-- we use the -p option of FPLO to run it in a scripting mode
+-- here the script to setup the calculation
+FEditMenuOptions = [[
+# go to symmetry menu
+@+@
+# title
+@c@CrCl2
+# enter spacegroup select box - 58
+@s@
+@58@
+@x@
+# structure type - crystal
+@t@
+@c@
+@x@
+# lenth units - angstroem
+@u@
+@a@
+@x@
+# lattice constants;
+@l@ 6.16532100 6.92974700 3.48899100
+# set axis angles
+@a@ 90 90 90
+# setup Wyckoff positions
+@n@2
+# Now, give list of ALL !!! Wyckoff positions.
+@1@ Cr @ 0.00000000  0.00000000  0.00000000
+@2@ Cl @ 0.21365200  0.86316900  0.50000000
+#
+# NOW CALL UPDATE, NEVER FORGET THIS!!!
+#
+@+@
+# leave symmetry menu
+@x@
+# back in main menu
+# This was the symmetry setup, and now we follow our advise to create
+# the default =.in input by using the REBUILD-action.
+# (The space before the 'e' opens the alternative menu bar.)
+@ e@
+# now we have the default input, and are still in the main menu
+
+# Set the number of k-points
+@k@ 10 10 10
+# Set the xc-potential version
+# first enter select box
+@v@
+# select via search
+!Perdew Wang 92!
+# leave select box, go back to main menu
+@x@
+
+# Set the relativistic mode:
+@r@
+# Select by search, please note that the parentheses indicating the hotkey
+# are not considered in search mode.
+# (Have a look at the select box interactively.)
+!scalar relativistic!
+# leave select box
+@x@
+# Set number of iterations
+@n@ 60
+
+# last action must be
+@q@
+]]
+
+print(FEditMenuOptions)
+
+-- The first run to selfconsistency.
+-- Copy the string above to an input file
+file = io.open(directoryname.."/=.pipe", "w")
+file:write(FEditMenuOptions)
+file:close()
+-- run FEdit
+os.execute("cd "..directoryname.."; "..FEdit.." -p "..FPLO.." -pipe <=.pipe 2>+log 1> out.fedit")
+-- run FPLO
+os.execute("cd "..directoryname.."; "..FPLO.." 2>>+log 1 | tee out.scflow")
+
+-- Next we increase the number of k-points and numerical accuracy
+FEditMenuOptionsMorekPoints = [[
+# Set the number of k-points
+@k@ 20 20 20
+# Set the accuracy of density
+@a@ 1.e-11
+# Set the accuracy of Etot
+@c@ 1.e-9
+# Set number of iterations
+@n@ 60
+
+
+# Set options:
+@-@
+# save the basis orbitals to disk
+!PLOT_BASIS!+
+#leave menu
+@x@
+
+# last action must be
+@q@
+]]
+
+-- write the above string to a file
+file = io.open(directoryname.."/=.pipekmesh", "w")
+file:write(FEditMenuOptionsMorekPoints)
+file:close()
+-- run FEdit
+os.execute("cd "..directoryname.."; "..FEdit.." -p "..FPLO.." -pipe <=.pipekmesh 2>+log 1> out.feditkmesh")
+-- run FPLO
+os.execute("cd "..directoryname.."; "..FPLO.." 2>>+log 1 | tee out.scf")
+
+-- calculate bands
+FEditMenuOptionsBand = [[
+@ b@
+  @b@+
+  @w@+
+@x@
+@q@";
+]]
+
+-- copy the string to a file
+file = io.open(directoryname.."/=.pipeband", "w")
+file:write(FEditMenuOptionsBand)
+file:close()
+-- run FEDIT
+os.execute("cd "..directoryname.."; "..FEdit.." -p "..FPLO.." -pipe <=.pipeband 2>+log 1> out.feditband")
+-- run FPLO
+os.execute("cd "..directoryname.."; "..FPLO.." 2>>+log 1 | tee out.band")
+
+

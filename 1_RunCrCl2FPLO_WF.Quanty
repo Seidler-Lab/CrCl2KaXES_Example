@@ -1,0 +1,170 @@
+-- This script downfolds the solution of a DFT calculation for CrCl2 to
+-- a basis of Cr-d and Cl-p orbitals
+
+-- The name of the program and version
+FPLO  = "fplo14.00-49-x86_64"
+FEdit = "fedit14.00-49-x86_64"
+
+directoryname = "DFT"
+
+
+-- define the =.wandef file to calculate the Wannier functions
+WanDef=[[doit
+
+---- real space grid for pictures of WFs ---------------------
+
+WF_grid_basis conv
+WF_grid_directions
+2 0 0
+0 2 0
+0 0 2
+WF_grid_subdivision  1 1 1
+
+-------------------------------------------------
+ham_cutoff 18
+-- the thresholds need to be 0, otherwise the result is symmetry braking
+-- the z^2 orbital has different values for the same hopping from the x^2-y^2 orbital
+-- cutting them by value leads to a different behaviour of the z^2 from the x^2-y^2 orbital
+-- and by hybridization the pz will be different from the px/py or the dxy from the dxz/dyz
+WF_ham_threshold 0
+WF_coeff_threshold 0
+WF_write_coeff_stats on
+ham_write_t_stats on
+
+----- ham export grid --------
+
+k_grid_basis prim
+k_grid_directions
+1 0 0
+0 1 0
+0 0 1
+k_grid_subdivision  1 1 1
+k_grid_incl_periodic_points off
+
+]]
+
+for i=1,2 do
+WanDef = WanDef..[[
+wandef
+on
+  name Cr_]]..i..[[_3dxy
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3d-2
+    fac    1
+wandef
+on
+  name Cr_]]..i..[[_3dyz
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3d-1
+    fac    1
+wandef
+on
+  name Cr_]]..i..[[_3dz2
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3d+0
+    fac    1
+wandef
+on
+  name Cr_]]..i..[[_3dxz
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3d+1
+    fac    1
+wandef
+on
+  name Cr_]]..i..[[_3dx2-y2
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3d+2
+    fac    1
+
+]]
+end
+
+-- Wandefs for the Chlorine Atoms
+for i=3,6 do
+WanDef = WanDef..[[
+wandef
+on
+  name Cl_]]..i..[[_3py
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3p-1
+    fac    1
+wandef
+on
+  name Cl_]]..i..[[_3pz
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3p+0
+    fac    1
+wandef
+on
+  name Cl_]]..i..[[_3px
+  emin -8
+  emax   +2
+  de 0.0
+  contrib
+    site ]]..i..[[
+    difvec 0 0 0
+    xaxis 1 0 0
+    zaxis 0 0 1
+    orb 3p+1
+    fac    1
+]]
+end
+
+-- write to file
+file = io.open(directoryname.."/=.wandef", "w")
+file:write(WanDef)
+file:close()
+-- run FPLO
+os.execute("cd "..directoryname.."; "..FPLO.." 2>>+log 1 | tee out.wandef")
+-- rerun FPLO, needed for Wannier functions. 
+os.execute("cd "..directoryname.."; "..FPLO.." 2>>+log 1 | tee out.wan")
+
