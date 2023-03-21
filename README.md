@@ -7,4 +7,6 @@ These scripts are built for a linux environment and require Quanty and FPLO bina
 
 First, update the 0_RunCrCl2FPLO.Quanty and 1_RunCrCl2_WF.Quanty scripts to use whatever FPLO version sepecific binaries you have.
 Then, using an up to date quanty binary, run
-"quanty 0_RunCrCl2FPLO.Quanty; quanty 1_RunCrCl2_WF.Quanty; quanty 2_XES.Quanty"
+```
+quanty 0_RunCrCl2FPLO.Quanty; quanty 1_RunCrCl2_WF.Quanty; quanty 2_XES.Quanty
+```
